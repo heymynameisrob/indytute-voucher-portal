@@ -1,25 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useData } from './context/DataProvider';
+import {LoginPage} from './components/Login';
+import {DashboardPage} from './components/Dashboard';
+import { Redirect } from 'react-router';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const App = () => {
+  const [authed, setAuthed] = useState(false);
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, (user) => {
+    if(user) {
+      console.log('Logged In')
+      setAuthed(true)
+    } else {
+      console.log('Not Logged In')
+      setAuthed(false)
+    }
+  });
+
+  return authed ? <DashboardPage /> : <LoginPage />
 }
-
-export default App;
+export default App
