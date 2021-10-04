@@ -1,25 +1,33 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
+import { ChevronDown, ChevronUp } from 'react-feather';
 import { useData } from '../context/DataProvider';
-import { Button, ButtonSecondary } from './Controls';
+import { Button, ButtonSecondary, IconButton } from './Controls';
 import { Table } from './Table';
 
 export const DashboardPage = () => {
-  const {getOrders, orders} = useData();    
+  const {getOrders, completedOrders, orders} = useData();    
+  const [showArchive, setShowArchive] = useState(false);
 
   useEffect(() => {    
     const fetch = async() => {
-      const res = await getOrders()            
+      await getOrders()            
     }
     fetch();            
   }, []);
-  
-  console.log('Order', orders[0]);
 
   return(
     <div className="max-w-4xl px-4 mx-auto">
       <DashboardNav />
-      <h2 class="text-2xl md:text-4xl font-semibold mb-6">Latest Orders</h2>
+      <h2 class="text-2xl md:text-4xl font-semibold mb-6">New Orders <span className="text-xs text-opacity-50 font-normal">({orders.length} orders)</span></h2>
       <DashboardTable data={orders} />
+
+      <div class="flex justify-between items-center mb-6 mt-12">
+        <h2 class="text-2xl md:text-4xl font-semibold">Archived Orders <span className="text-xs text-opacity-50 font-normal">({completedOrders.length} orders)</span></h2>
+        <IconButton onClick={() => setShowArchive(!showArchive)}>
+          { showArchive ? <ChevronUp color="currentColor" /> : <ChevronDown color="currentColor" /> }
+        </IconButton>
+      </div>
+      {showArchive ? <DashboardTable data={completedOrders} /> : null}
     </div>
   )
 }

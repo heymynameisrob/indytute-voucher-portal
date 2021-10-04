@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, getDocs } from "firebase/firestore"
+import { getFirestore, collection, getDocs, doc, setDoc } from "firebase/firestore"
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -23,8 +23,8 @@ const TEST_DATA = [{'id':'001'}];
 
 const DataProvider = (props) => {
   const auth = getAuth();
-  const [orders,setOrders] = useState([]);
-  const [vouchers,setVouchers] = useState([]);
+  const [orders,setOrders] = useState([]);  
+  const [completedOrders,setCompletedOrders] = useState([]);  
   const [user, setUser] = useState({status:'NOT LOGGED IN', user:{}});
 
   const loginWithFirebase = (email, password) => {
@@ -44,17 +44,22 @@ const DataProvider = (props) => {
     querySnapshot.forEach((doc) => {            
       arry.push({id: doc.id, data:doc.data()});      
     });  
-    setOrders(arry);     
+    const completedOrders = arry.filter(order => order.data.complete === true);
+    const incompletedOrders = arry.filter(order => order.data.complete !== true);
+
+    setOrders(incompletedOrders);     
+    setCompletedOrders(completedOrders)
+
   }
 
-
-
-  const testSetData = () => {
-    setVouchers(TEST_DATA)
-  } 
+  const setComplete = async (id, newState) => {
+    const cityRef = doc(db, 'orders', id);
+    setDoc(cityRef, { complete: newState }, { merge: true });
+    const fetch = await getOrders();        
+  }
 
   return(
-    <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, vouchers, testSetData, getOrders, orders }} {...props} />
+    <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders }} {...props} />
   )
 }
 
