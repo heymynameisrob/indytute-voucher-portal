@@ -5,35 +5,49 @@ import { IconButton } from './Controls';
 import { Badge } from './Notifications';
 import { truncateString } from './Helpers';
 import { modifyPDF } from './PDF';
+import { toast } from 'react-toastify';
 
-export const Table = ({data}) => {
-  const [orderLimit, setOrderLimit] = useState(8);
-
-  return(
-    <div className="flex flex-col">
-      <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <TableHeadRow name={'Customer'} />              
-                <TableHeadRow name={'Order'} />
-                <TableHeadRow name={'Origin'} />
-                <TableHeadRow name={'Actions'} />
-              </thead>
-              <tbody>
-                {data.slice(0, orderLimit).map(obj => <TableRow obj={obj} />)}               
-              </tbody>
-            </table>
-            <div className="flex justify-center items-center py-3">
-              <button className="button button-primary" onClick={() => setOrderLimit(orderLimit + 8)}>Load more...</button>
-            </div>
-          </div>
+const TableContainer = ({children}) => (
+  <div className="flex flex-col">
+    <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+      <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+        <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+          {children}
         </div>
       </div>
     </div>
+  </div>
+)
+
+const TableHead = () => (
+  <thead className="bg-gray-50">
+    <TableHeadRow name={'Customer'} />              
+    <TableHeadRow name={'Order'} />
+    <TableHeadRow name={'Origin'} />
+    <TableHeadRow name={'Actions'} />
+  </thead>
+)
+
+export const Table = ({data}) => {
+  const [orderLimit, setOrderLimit] = useState(8);
+  return(
+    <TableContainer>
+      <table className="min-w-full divide-y divide-gray-200">
+        <TableHead />
+        <tbody>
+          {data.slice(0, orderLimit).map(obj => <TableRow obj={obj} />)}
+        </tbody>            
+      </table>
+      {orderLimit.length >  8 && <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} />}        
+    </TableContainer>
   )
 }
+
+const TableLoadMore = ({handleLoadMore}) => (
+  <div className="flex justify-center items-center py-3">
+    <button className="button button-primary" onClick={handleLoadMore()}>Load more...</button>}
+  </div>  
+)
 
 const TableHeadRow = ({name}) => {
   return (
@@ -63,15 +77,24 @@ const TableRow = ({key, obj}) => {
 
 const TableRowActions = ({id, data}) => {
   const [completeState, setCompleteState] = useState(data.complete || false)
-  const {setComplete} = useData(); 
+  const {setComplete, prepDownload} = useData(); 
   
   const handleSetComplete = () => {
     // Update Firebase
+    if(!completeState === true) {
+      toast('Marked as complete');
+    } else {
+      toast('Marked as todo');
+    }
     setComplete(id, !completeState);
+  }
+
+  const handlePDFDownload = () => {    
+    modifyPDF(data);
   }
   return(
     <div className="flex justify-start items-center space-x-4">
-      <IconButton onClick={() => modifyPDF(data)}><Download color="currentColor" /></IconButton>
+      <IconButton onClick={() => handlePDFDownload()}><Download color="currentColor" /></IconButton>
       <IconButton onClick={() => handleSetComplete()}>
         {completeState ? <MinusCircle color="currentColor" /> : <CheckCircle color="currentColor" />} 
       </IconButton>      

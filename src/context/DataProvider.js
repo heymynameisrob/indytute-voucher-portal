@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, setDoc } from "firebase/firestore"
+import { modifyPDF } from '../components/PDF';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,8 +19,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 export const DataContext = React.createContext();
-
-const TEST_DATA = [{'id':'001'}];
 
 const DataProvider = (props) => {
   const auth = getAuth();
@@ -57,6 +56,7 @@ const DataProvider = (props) => {
     setDoc(cityRef, { complete: newState }, { merge: true });
     const fetch = await getOrders();        
   }
+  
 
   return(
     <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders }} {...props} />

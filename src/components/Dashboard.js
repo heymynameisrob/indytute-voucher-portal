@@ -1,8 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import { ChevronDown, ChevronUp } from 'react-feather';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useData } from '../context/DataProvider';
-import { Button, ButtonSecondary, IconButton } from './Controls';
+import { ButtonSecondary, IconButton } from './Controls';
 import { Table } from './Table';
+
 
 export const DashboardPage = () => {
   const {getOrders, completedOrders, orders} = useData();    
@@ -16,21 +19,30 @@ export const DashboardPage = () => {
   }, []);
 
   return(
-    <div className="max-w-4xl px-4 mx-auto">
+    <PageContainer>
       <DashboardNav />
-      <h2 class="text-2xl md:text-4xl font-semibold mb-6">New Orders <span className="text-xs text-opacity-50 font-normal">({orders.length} orders)</span></h2>
+      <PageHeader label="Latest Orders" orders={orders} />      
       <DashboardTable data={orders} />
 
       <div class="flex justify-between items-center mb-6 mt-12">
-        <h2 class="text-2xl md:text-4xl font-semibold">Archived Orders <span className="text-xs text-opacity-50 font-normal">({completedOrders.length} orders)</span></h2>
-        <IconButton onClick={() => setShowArchive(!showArchive)}>
-          { showArchive ? <ChevronUp color="currentColor" /> : <ChevronDown color="currentColor" /> }
-        </IconButton>
+        <PageHeader label="Archived Orders" orders={completedOrders} />      
+        <IconButton onClick={() => setShowArchive(!showArchive)}>{ showArchive ? <ChevronUp color="currentColor" /> : <ChevronDown color="currentColor" /> }</IconButton>
       </div>
-      {showArchive ? <DashboardTable data={completedOrders} /> : null}
-    </div>
+
+      {
+      showArchive ? 
+      <DashboardTable data={completedOrders} /> : null
+      }
+      <ToastContainer />
+    </PageContainer>
   )
 }
+
+const PageContainer = ({children}) => (
+  <div className="max-w-4xl px-4 mx-auto">
+    {children}
+  </div>
+)
 
 const DashboardNav = () => {
   const {logoutWithFirebase} = useData();
@@ -42,11 +54,18 @@ const DashboardNav = () => {
   )
 }
 
+const PageHeader = ({label, orders}) => (
+  <h2 class="text-2xl md:text-4xl font-semibold mb-6">
+    {label}
+    <span className="text-xs text-opacity-50 font-normal pl-2">({orders.length} orders)</span>
+  </h2>
+)
+
 const DashboardTable = ({data}) => {
 
   // Check if data is fetched from Firebase
   if(data.length < 1) {
-    return <div>Loading...</div>
+    return <div>No orders to show</div>
   }
 
   return(

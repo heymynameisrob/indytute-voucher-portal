@@ -1,4 +1,5 @@
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { toast } from 'react-toastify';
 import download from 'downloadjs';
 
 const headers = {
@@ -9,12 +10,22 @@ export const modifyPDF = async (data) => {
 
   const {orderID, voucherURL, expiryDate} = data;
 
-  const existingPdfBytes = await fetch(voucherURL, headers).then(res => res.arrayBuffer());
-  const pdfDoc = await PDFDocument.load(existingPdfBytes)
+  if(voucherURL.includes('https') === false) {
+    toast.error('Cant download PDF')
+    return null
+  }
+
+  toast.success('Downloaded PDF')
+
+  const existingPdfBytes = await fetch(voucherURL, headers)
+    .then(res => res.arrayBuffer())
+    .catch(err => console.log(err));
+
+  const pdfDoc = await PDFDocument.load(existingPdfBytes)  
   const [firstPage] = pdfDoc.getPages()  
 
   // Get the width and height of the first page
-  const { width, height } = firstPage.getSize();
+  const { height } = firstPage.getSize();
 
   const labelText = {  
     y: height - 800,  
