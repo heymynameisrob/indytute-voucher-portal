@@ -1,11 +1,14 @@
 import React, {useState} from 'react';
 import { Check, CheckCircle, Download, MinusCircle } from 'react-feather';
+import ReactTooltip from 'react-tooltip';
+import { toast } from 'react-toastify';
+import {DateTime} from 'luxon';
 import { useData } from '../context/DataProvider';
 import { IconButton } from './Controls';
 import { Badge } from './Notifications';
 import { truncateString } from './Helpers';
 import { modifyPDF } from './PDF';
-import { toast } from 'react-toastify';
+
 
 const TableContainer = ({children}) => (
   <div className="flex flex-col">
@@ -15,14 +18,16 @@ const TableContainer = ({children}) => (
           {children}
         </div>
       </div>
-    </div>
+    </div>    
   </div>
 )
 
 const TableHead = () => (
   <thead className="bg-gray-50">
     <TableHeadRow name={'Customer'} />              
-    <TableHeadRow name={'Order'} />
+    <TableHeadRow name={'Order'} />    
+    <TableHeadRow name={'Order No'} />    
+    <TableHeadRow name={'Date'} />
     <TableHeadRow name={'Origin'} />
     <TableHeadRow name={'Actions'} />
   </thead>
@@ -38,14 +43,14 @@ export const Table = ({data}) => {
           {data.slice(0, orderLimit).map(obj => <TableRow obj={obj} />)}
         </tbody>            
       </table>
-      {orderLimit.length >  8 && <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} />}        
+      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
     </TableContainer>
   )
 }
 
 const TableLoadMore = ({handleLoadMore}) => (
   <div className="flex justify-center items-center py-3">
-    <button className="button button-primary" onClick={handleLoadMore()}>Load more...</button>}
+    <button className="button button-primary" onClick={() => handleLoadMore()}>Load more...</button>
   </div>  
 )
 
@@ -58,7 +63,7 @@ const TableHeadRow = ({name}) => {
 }
 
 const TableRow = ({key, obj}) => {  
-  const {customer, name, orderID, type, voucherURL} = obj.data;
+  const {customer, name, orderID, type, orderStatus, created} = obj.data;
   return(
     <tr>
       <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">
@@ -68,7 +73,15 @@ const TableRow = ({key, obj}) => {
       <p>{customer.name}</p> 
       }  
       </td>      
-      <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">{truncateString(name)}</td>
+      <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">{truncateString(name)}</td>    
+      <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">
+        {orderStatus ? 
+        <a className="underline" href={orderStatus} target="_blank">{orderID}</a> 
+        :
+        <p>{orderID}</p> 
+        }  
+      </td>    
+      <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">{DateTime.fromISO(created).toLocaleString(DateTime.DATETIME_MED)}</td>      
       <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700"><Badge type={type} label={type} /></td>      
       <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700"><TableRowActions id={obj.id} data={obj.data} /></td>      
     </tr>

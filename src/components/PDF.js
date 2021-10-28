@@ -8,9 +8,9 @@ const headers = {
 
 export const modifyPDF = async (data) => {
 
-  const {orderID, voucherURL, expiryDate} = data;
+  const {orderID, voucherURL, expiryDate, pin} = data;
 
-  if(voucherURL.includes('https') === false) {
+  if(!voucherURL || voucherURL.includes('https') === false) {
     toast.error('Cant download PDF')
     return null
   }
@@ -38,13 +38,13 @@ export const modifyPDF = async (data) => {
     color: rgb(0,0,0),    
   }
 
-  firstPage.drawText('Order No', {x:35, y: height / 2 + 300, ...labelText});
-  firstPage.drawText('Expiry date', {x: 150, y: height / 2 + 300, ...labelText});
+  firstPage.drawText('Voucher No', {x:35, y: height / 2 + 300, ...labelText});
+  firstPage.drawText('Register by', {x: 130, y: height / 2 + 300, ...labelText});
   firstPage.drawText('Voucher PIN', {x: 270, y: height / 2 + 300, ...labelText});
 
   firstPage.drawText(orderID.toString(), {x:35, ...valueText});
-  firstPage.drawText(expiryDate, {x: 150, ...valueText});
-  firstPage.drawText('0000', {x: 270, ...valueText});
+  firstPage.drawText('June 25th 2022', {x: 130, ...valueText});
+  firstPage.drawText(pin, {x: 270, ...valueText});
 
   try {    
     const pdfBytes = await pdfDoc.save()

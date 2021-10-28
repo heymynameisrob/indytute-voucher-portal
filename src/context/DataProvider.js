@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, setDoc } from "firebase/firestore"
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { modifyPDF } from '../components/PDF';
 
 // Your web app's Firebase configuration
@@ -25,6 +26,8 @@ const DataProvider = (props) => {
   const [orders,setOrders] = useState([]);  
   const [completedOrders,setCompletedOrders] = useState([]);  
   const [user, setUser] = useState({status:'NOT LOGGED IN', user:{}});
+  const [fileUploaded, setFileUploaded] = useState({success:false});
+  const [allOrders, setAllOrders] = useState({});
 
   const loginWithFirebase = (email, password) => {
     signInWithEmailAndPassword(auth, email, password)
@@ -56,10 +59,21 @@ const DataProvider = (props) => {
     setDoc(cityRef, { complete: newState }, { merge: true });
     const fetch = await getOrders();        
   }
-  
+
+  const uploadFile = async(sku, file) => {
+    const storage = getStorage();
+    const storageRef = ref(storage, `${sku}.pdf`);
+        
+    return uploadBytes(storageRef, file)
+    .then((snapshot) => {
+      console.log('Uploaded file:' + file.name + 'as' + sku )
+      setFileUploaded({success:true})
+    })
+    .catch(err => { setFileUploaded({success: false, status: err.message})})
+  }
 
   return(
-    <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders }} {...props} />
+    <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile }} {...props} />
   )
 }
 

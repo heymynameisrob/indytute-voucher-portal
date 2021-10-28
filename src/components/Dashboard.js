@@ -1,15 +1,32 @@
-import React, {useEffect, useState} from 'react';
+import React, {Suspense, useEffect, useState} from 'react';
 import { ChevronDown, ChevronUp } from 'react-feather';
+import ReactModal from 'react-modal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useData } from '../context/DataProvider';
 import { ButtonSecondary, IconButton } from './Controls';
 import { Table } from './Table';
+import { Upload } from './Upload';
 
 
 export const DashboardPage = () => {
-  const {getOrders, completedOrders, orders} = useData();    
+  const {getOrders, completedOrders, orders, logoutWithFirebase, fileUploaded} = useData();    
   const [showArchive, setShowArchive] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const modalStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+    },
+    overlay: {
+      backgroundColor: 'rgba(0,0,0,0.6)'
+    }
+  }
 
   useEffect(() => {    
     const fetch = async() => {
@@ -18,9 +35,23 @@ export const DashboardPage = () => {
     fetch();            
   }, []);
 
+  useEffect(() => {
+    console.log('PING!')
+    if(fileUploaded.success === true) {
+      closeModal()
+    }
+  },[fileUploaded])
+
+  const openModal = () => {
+    setModalIsOpen(true);
+  }
+  const closeModal = () => {
+    setModalIsOpen(false);
+  }
+
   return(
     <PageContainer>
-      <DashboardNav />
+      <DashboardNav handleOpenModal={openModal} />
       <PageHeader label="Latest Orders" orders={orders} />      
       <DashboardTable data={orders} />
 
@@ -32,24 +63,35 @@ export const DashboardPage = () => {
       {
       showArchive ? 
       <DashboardTable data={completedOrders} /> : null
-      }
+      }      
       <ToastContainer />
+      <ButtonSecondary onClick={() => logoutWithFirebase()}>Logout</ButtonSecondary>
+      <Suspense fallback="">
+        <ReactModal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        style={modalStyles}
+        >
+        <Upload />
+        </ReactModal>
+      </Suspense>
     </PageContainer>
   )
 }
 
 const PageContainer = ({children}) => (
-  <div className="max-w-4xl px-4 mx-auto">
+  <div className="max-w-6xl px-4 mx-auto">
     {children}
   </div>
 )
 
-const DashboardNav = () => {
-  const {logoutWithFirebase} = useData();
+const DashboardNav = ({handleOpenModal}) => {  
   return(
     <div className="flex justify-between items-center py-6">
       <h2 className="text-lg font-semibold">Indytute</h2>
-      <ButtonSecondary onClick={() => logoutWithFirebase()}>Logout</ButtonSecondary>
+      <div className="space-x-4">
+        <ButtonSecondary onClick={() => handleOpenModal()}>Upload Voucher</ButtonSecondary>        
+      </div>
     </div>
   )
 }
