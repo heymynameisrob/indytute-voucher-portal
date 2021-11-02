@@ -10,7 +10,7 @@ import { Upload } from './Upload';
 
 
 export const DashboardPage = () => {
-  const {getOrders, completedOrders, orders, logoutWithFirebase, fileUploaded} = useData();    
+  const {getOrders, completedOrders, orders, logoutWithFirebase, fileUploaded, getAuthState, user} = useData();    
   const [showArchive, setShowArchive] = useState(false);
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
@@ -29,6 +29,8 @@ export const DashboardPage = () => {
   }
 
   useEffect(() => {    
+    getAuthState();
+    
     const fetch = async() => {
       await getOrders()            
     }
@@ -49,11 +51,13 @@ export const DashboardPage = () => {
     setModalIsOpen(false);
   }
 
+  console.log(user);
+
   return(
     <PageContainer>
       <DashboardNav handleOpenModal={openModal} />
       <PageHeader label="Latest Orders" orders={orders} />      
-      <DashboardTable data={orders} />
+      <DashboardTable key={user.uid} data={orders} />
 
       <div class="flex justify-between items-center mb-6 mt-12">
         <PageHeader label="Archived Orders" orders={completedOrders} />      

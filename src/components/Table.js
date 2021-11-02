@@ -40,7 +40,7 @@ export const Table = ({data}) => {
       <table className="min-w-full divide-y divide-gray-200">
         <TableHead />
         <tbody>
-          {data.slice(0, orderLimit).map(obj => <TableRow obj={obj} />)}
+          {data.slice(0, orderLimit).map(obj => <TableRow key={obj.id} obj={obj} />)}
         </tbody>            
       </table>
       {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
@@ -89,9 +89,10 @@ const TableRow = ({key, obj}) => {
 }
 
 const TableRowActions = ({id, data}) => {
-  const [completeState, setCompleteState] = useState(data.complete || false)
-  const {setComplete, prepDownload} = useData(); 
-  
+  const {voucherExists, voucherURL, complete} = data;
+  const [completeState, setCompleteState] = useState(complete || false)
+  const {setComplete} = useData();   
+
   const handleSetComplete = () => {
     // Update Firebase
     if(!completeState === true) {
@@ -102,12 +103,22 @@ const TableRowActions = ({id, data}) => {
     setComplete(id, !completeState);
   }
 
-  const handlePDFDownload = () => {    
-    modifyPDF(data);
+  const handlePDFDownload = (d) => {    
+    modifyPDF(d);
   }
+
+
   return(
     <div className="flex justify-start items-center space-x-4">
-      <IconButton onClick={() => handlePDFDownload()}><Download color="currentColor" /></IconButton>
+      {!voucherURL || voucherExists === false ?
+      <IconButton onClick={() => toast.error('Voucher doesnt exist. Please upload the right voucher')}>
+        <Download color="#ddd" />
+      </IconButton>
+      :
+      <IconButton onClick={() => handlePDFDownload(data)}>
+        <Download color="currentColor" />
+      </IconButton> 
+      }
       <IconButton onClick={() => handleSetComplete()}>
         {completeState ? <MinusCircle color="currentColor" /> : <CheckCircle color="currentColor" />} 
       </IconButton>      

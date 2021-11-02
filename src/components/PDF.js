@@ -11,6 +11,7 @@ export const modifyPDF = async (data) => {
   const {orderID, voucherURL, expiryDate, pin} = data;
 
   if(!voucherURL || voucherURL.includes('https') === false) {
+    alert(voucherURL);
     toast.error('Cant download PDF')
     return null
   }

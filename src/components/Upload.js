@@ -1,12 +1,12 @@
 import React, {useCallback, useState, useEffect} from 'react';
 import {useDropzone} from 'react-dropzone'
-import { File } from 'react-feather';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { useData } from '../context/DataProvider';
+import { Button } from './Controls';
 
 export const Upload = () => {  
-  const [sku, setSku] = useState();
+  const [data, setData] = useState();
 
   return(
     <div className="pb-12 px-8 lg:px-24 space-y-8 modal">
@@ -14,9 +14,8 @@ export const Upload = () => {
         <h2 className="text-3xl font-semibold text-gray-900">Upload Missing Voucher</h2>
         <p className="text-sm text-gray-500">PDF only, max 2MB</p>
       </header>
-      <ProductSelect handleSetProduct={(option) => setSku(option.value)} />
-      {sku && <FileUpload sku={sku} />}
-      
+      <ProductSelect handleSetProduct={(option) => setData({sku: option.value, id:option.id})} />
+      {data && <FileUpload data={data} />}      
     </div>
     
   )
@@ -34,7 +33,11 @@ const ProductSelect = ({handleSetProduct}) => {
   const createOptions = () => {
     const array = [];
     orders.forEach(order => {
-      array.push({label: order.data.name, value: order.data.sku})
+      const {name, sku, voucherExists, voucherURL} = order.data;
+      // Replace with voucherExists at some point
+      if(!voucherURL || voucherURL.includes('https') === false) {
+        array.push({label: name, value: sku, id:order.id})
+      }
     });
     console.log(array);
     setOptions(array);
@@ -55,13 +58,15 @@ const ProductSelect = ({handleSetProduct}) => {
   )
 }
 
-const FileUpload = ({sku}) => {
-  const {uploadFile} = useData();
+const FileUpload = ({data}) => {
+  const {uploadFile, voucherRefresh, getOrders} = useData();
+  const {sku, id} = data;
 
   const onDrop = useCallback(acceptedFiles => {    
     console.log(`Uploading file: ${sku}.pdf`)
     uploadFile(sku, acceptedFiles[0])
-    .then(() => toast.success('File Uploaded'))
+    .then(() => voucherRefresh(id))
+    .then(() => toast.success('Uploading'))  
     .catch(() => toast.success('Oops, that didnt work. Refesh and try again.'))
   }, [])
 

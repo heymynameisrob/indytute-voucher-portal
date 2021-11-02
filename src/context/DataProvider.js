@@ -34,6 +34,12 @@ const DataProvider = (props) => {
     .then(creds => setUser({status:'LOGGED IN', user: creds.user}))
     .catch(err => setUser({status:'INVALID', message:err.message}))
   }
+
+  const getAuthState = () => {
+    if(auth) {
+      setUser({status:'LOGGED IN', user:auth.currentUser})
+    }
+  }
   
   const logoutWithFirebase = () => {
     const auth = getAuth();
@@ -41,6 +47,7 @@ const DataProvider = (props) => {
   }
 
   const getOrders = async() => {
+    console.log('Getting orders...')
     const arry = [];
     const querySnapshot = await getDocs(collection(db, "orders"));
     querySnapshot.forEach((doc) => {            
@@ -66,14 +73,19 @@ const DataProvider = (props) => {
         
     return uploadBytes(storageRef, file)
     .then((snapshot) => {
-      console.log('Uploaded file:' + file.name + 'as' + sku )
-      setFileUploaded({success:true})
+      console.log('Uploaded file:' + file.name + 'as' + sku )      
+      setFileUploaded({success: true})
     })
     .catch(err => { setFileUploaded({success: false, status: err.message})})
   }
+  const voucherRefresh = async (id) => {    
+    const cityRef = doc(db, 'orders', id);
+    setDoc(cityRef, { voucherExists: true }, { merge: true });    
+    await getOrders()
+  }
 
   return(
-    <DataContext.Provider value={{ user, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile }} {...props} />
+    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh}} {...props} />
   )
 }
 
