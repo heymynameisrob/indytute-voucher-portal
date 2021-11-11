@@ -1,8 +1,8 @@
 import React, { Children } from 'react';
 
-export const Button = ({onClick, children}) => {  
+export const Button = ({onClick, children, styles}) => {  
   return(
-    <button onClick={onClick} className="button button-primary" >{children}</button>
+    <button onClick={onClick} className={`button button-primary ${styles}`} >{children}</button>
   )
 }
 

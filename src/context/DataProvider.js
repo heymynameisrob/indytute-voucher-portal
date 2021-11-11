@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, getDocs, doc, setDoc } from "firebase/firestore"
+import { getFirestore, collection, getDocs, doc, query, setDoc, onSnapshot } from "firebase/firestore"
 import { getStorage, ref, uploadBytes } from "firebase/storage";
-import { modifyPDF } from '../components/PDF';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -26,8 +25,7 @@ const DataProvider = (props) => {
   const [orders,setOrders] = useState([]);  
   const [completedOrders,setCompletedOrders] = useState([]);  
   const [user, setUser] = useState({status:'NOT LOGGED IN', user:{}});
-  const [fileUploaded, setFileUploaded] = useState({success:false});
-  const [allOrders, setAllOrders] = useState({});
+  const [fileUploaded, setFileUploaded] = useState({success:false});  
 
   const loginWithFirebase = (email, password) => {
     signInWithEmailAndPassword(auth, email, password)
@@ -36,9 +34,7 @@ const DataProvider = (props) => {
   }
 
   const getAuthState = () => {
-    if(auth) {
-      setUser({status:'LOGGED IN', user:auth.currentUser})
-    }
+    auth && setUser({status:'LOGGED IN', user:auth.currentUser})
   }
   
   const logoutWithFirebase = () => {
@@ -53,18 +49,20 @@ const DataProvider = (props) => {
     querySnapshot.forEach((doc) => {            
       arry.push({id: doc.id, data:doc.data()});      
     });  
-    const completedOrders = arry.filter(order => order.data.complete === true);
-    const incompletedOrders = arry.filter(order => order.data.complete !== true);
+
+    const sortedArray = arry.sort((a,b) => new Date(b.data.created) - new Date(a.data.created));
+
+    const completedOrders = sortedArray.filter(order => order.data.complete === true);
+    const incompletedOrders = sortedArray.filter(order => order.data.complete !== true);
 
     setOrders(incompletedOrders);     
     setCompletedOrders(completedOrders)
-
   }
 
   const setComplete = async (id, newState) => {
     const cityRef = doc(db, 'orders', id);
     setDoc(cityRef, { complete: newState }, { merge: true });
-    const fetch = await getOrders();        
+    await getOrders();        
   }
 
   const uploadFile = async(sku, file) => {
@@ -72,16 +70,15 @@ const DataProvider = (props) => {
     const storageRef = ref(storage, `${sku}.pdf`);
         
     return uploadBytes(storageRef, file)
-    .then((snapshot) => {
-      console.log('Uploaded file:' + file.name + 'as' + sku )      
-      setFileUploaded({success: true})
-    })
+    .then(() => {
+      console.log('Uploaded file:' + file.name + 'as' + sku )     
+      setFileUploaded({success: true})           
+    })    
     .catch(err => { setFileUploaded({success: false, status: err.message})})
   }
   const voucherRefresh = async (id) => {    
     const cityRef = doc(db, 'orders', id);
-    setDoc(cityRef, { voucherExists: true }, { merge: true });    
-    await getOrders()
+    setDoc(cityRef, { voucherExists: true }, { merge: true });              
   }
 
   return(

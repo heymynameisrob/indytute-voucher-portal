@@ -1,5 +1,6 @@
 import React, {useCallback, useState, useEffect} from 'react';
 import {useDropzone} from 'react-dropzone'
+import { File } from 'react-feather';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { useData } from '../context/DataProvider';
@@ -59,19 +60,26 @@ const ProductSelect = ({handleSetProduct}) => {
 }
 
 const FileUpload = ({data}) => {
-  const {uploadFile, voucherRefresh, getOrders} = useData();
+  const {uploadFile, voucherRefresh} = useData();
+  const {acceptedFiles, getRootProps, getInputProps, isDragActive, isDragReject, isDragAccept} = useDropzone()  
   const {sku, id} = data;
+  
+  const files = acceptedFiles.map(file => (
+    <div className="flex justify-center items-center flex-col space-y-4">
+      <File color="currentColor" />
+      <p className="text-sm text-gray-700">{file.path}</p>
+    </div>
+  ));
 
-  const onDrop = useCallback(acceptedFiles => {    
+  const handleUploadFile = () => {
+    
     console.log(`Uploading file: ${sku}.pdf`)
+
     uploadFile(sku, acceptedFiles[0])
     .then(() => voucherRefresh(id))
     .then(() => toast.success('Uploading'))  
     .catch(() => toast.success('Oops, that didnt work. Refesh and try again.'))
-  }, [])
-
-
-  const {getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({onDrop})
+  }
 
   const customRootProps = {
     maxSize: 2097152,
@@ -83,9 +91,13 @@ const FileUpload = ({data}) => {
       <p className="text-sm text-gray-700">Select the product with a missing voucher</p>
       <div className="bg-gray-100 w-full h-64 rounded border-gray-300 border-2 grid items-center p-8" {...getRootProps(customRootProps)}>
         <input {...getInputProps()} />      
-        {isDragActive && !isDragReject && <p className="text-sm text-gray-700 font-semibold">Drop the files here ...</p>}
-        {!isDragActive && <p className="text-sm text-gray-700 max-w-prose">Drag your PDF file here or click to upload </p>}
+        {isDragActive && !isDragReject && <p className="text-sm text-gray-700 font-semibold text-center">Drop the files here ...</p>}
+        {!isDragActive && files.length < 0 && <p className="text-sm text-gray-700 max-w-prose text-center">Drag your PDF file here or click to upload </p>}
         {isDragReject && <p className="text-sm text-gray-700 max-w-prose">That's not a PDF mate</p>}
+        {files}
+      </div>
+      <div className="flex items-center justify-center pt-4">
+        <Button styles={`w-full text-center ${files.length < 1 ? `pointer-events-none opacity-50` : ``}`} onClick={() => handleUploadFile()}>Upload</Button>
       </div>
     </div>
    

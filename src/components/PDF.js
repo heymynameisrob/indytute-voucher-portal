@@ -8,15 +8,13 @@ const headers = {
 
 export const modifyPDF = async (data) => {
 
-  const {orderID, voucherURL, expiryDate, pin} = data;
+  const {orderID, voucherExists, pin, sku} = data;
+  const voucherURL = `https://storage.googleapis.com/indytute-voucher-print.appspot.com/${sku}.pdf`
 
-  if(!voucherURL || voucherURL.includes('https') === false) {
-    alert(voucherURL);
+  if(voucherExists === false) {    
     toast.error('Cant download PDF')
     return null
   }
-
-  toast.success('Downloaded PDF')
 
   const existingPdfBytes = await fetch(voucherURL, headers)
     .then(res => res.arrayBuffer())
@@ -45,11 +43,12 @@ export const modifyPDF = async (data) => {
 
   firstPage.drawText(orderID.toString(), {x:35, ...valueText});
   firstPage.drawText('June 25th 2022', {x: 130, ...valueText});
-  firstPage.drawText(pin, {x: 270, ...valueText});
+  firstPage.drawText(pin.toString(), {x: 270, ...valueText});
 
   try {    
     const pdfBytes = await pdfDoc.save()
     download(pdfBytes, `${orderID}-voucher.pdf`, "application/pdf");
+    toast.success('Downloaded PDF')
   } catch(err) {
     console.log('Error:', err)
   }

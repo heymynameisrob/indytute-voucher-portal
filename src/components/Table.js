@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { Check, CheckCircle, Download, MinusCircle } from 'react-feather';
 import ReactTooltip from 'react-tooltip';
 import { toast } from 'react-toastify';
@@ -88,10 +88,9 @@ const TableRow = ({key, obj}) => {
   )
 }
 
-const TableRowActions = ({id, data}) => {
-  const {voucherExists, voucherURL, complete} = data;
-  const [completeState, setCompleteState] = useState(complete || false)
-  const {setComplete} = useData();   
+const TableRowActions = ({id, data}) => {  
+  const [completeState, setCompleteState] = useState(data.complete || false)
+  const {setComplete, fileUploaded} = useData();   
 
   const handleSetComplete = () => {
     // Update Firebase
@@ -103,19 +102,15 @@ const TableRowActions = ({id, data}) => {
     setComplete(id, !completeState);
   }
 
-  const handlePDFDownload = (d) => {    
-    modifyPDF(d);
-  }
-
 
   return(
     <div className="flex justify-start items-center space-x-4">
-      {!voucherURL || voucherExists === false ?
+      {!data.voucherURL || data.voucherExists === false ?
       <IconButton onClick={() => toast.error('Voucher doesnt exist. Please upload the right voucher')}>
         <Download color="#ddd" />
       </IconButton>
       :
-      <IconButton onClick={() => handlePDFDownload(data)}>
+      <IconButton onClick={() => modifyPDF(data)}>
         <Download color="currentColor" />
       </IconButton> 
       }
