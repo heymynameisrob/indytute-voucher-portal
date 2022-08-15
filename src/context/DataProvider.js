@@ -92,8 +92,7 @@ const DataProvider = (props) => {
     })
     .catch(err => console.log(err))  
 
-    setVouchers(arry)
-    console.log(vouchers)
+    setVouchers(arry)    
   }
 
   const voucherRefresh = async (id) => {    

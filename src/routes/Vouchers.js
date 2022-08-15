@@ -95,12 +95,14 @@ const PageHeader = ({label}) => (
 
 const Table = ({data}) => {
 
-  // Check if data is fetched from Firebase
-  if(data.length < 1) {
-    return <div>No vouchers to show</div>
+  // Make this better
+  if(data.length < 1) {       
+    return (
+      <div>Loading...</div>
+    )
   }
 
-  return(
+  return(    
     <VoucherTable cols={['Name, Email']} data={data} />
   )
 }
