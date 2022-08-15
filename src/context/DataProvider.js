@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, query, setDoc, onSnapshot } from "firebase/firestore"
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { getStorage, ref, uploadBytes, listAll } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -26,6 +26,7 @@ const DataProvider = (props) => {
   const [completedOrders,setCompletedOrders] = useState([]);  
   const [user, setUser] = useState({status:'NOT LOGGED IN', user:{}});
   const [fileUploaded, setFileUploaded] = useState({success:false});  
+  const [vouchers, setVouchers] = useState([]);
 
   const loginWithFirebase = (email, password) => {
     signInWithEmailAndPassword(auth, email, password)
@@ -76,13 +77,32 @@ const DataProvider = (props) => {
     })    
     .catch(err => { setFileUploaded({success: false, status: err.message})})
   }
+
+  const listFiles = async() => {
+    const storage = getStorage();
+    const listRef = ref(storage, `/`);    
+    const arry = [];
+
+    listAll(listRef)
+    .then((res)=> {
+      res.items.forEach((itemRef) => {
+        const {name, timeCreated, contentType} = itemRef;
+        arry.push({name})        
+      });
+    })
+    .catch(err => console.log(err))  
+
+    setVouchers(arry)
+    console.log(vouchers)
+  }
+
   const voucherRefresh = async (id) => {    
     const cityRef = doc(db, 'orders', id);
     setDoc(cityRef, { voucherExists: true }, { merge: true });              
   }
 
   return(
-    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh}} {...props} />
+    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh, listFiles, vouchers}} {...props} />
   )
 }
 

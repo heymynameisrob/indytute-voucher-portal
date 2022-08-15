@@ -25,10 +25,12 @@ export const Upload = () => {
 const ProductSelect = ({handleSetProduct}) => {
   const {getOrders, orders} = useData();
   const [options, setOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
  
-  useEffect(() => {
+  useEffect(() => {    
     getOrders();
-    createOptions();
+    createOptions();    
+    setIsLoading(false);
   }, []);
 
   const createOptions = () => {
@@ -40,12 +42,14 @@ const ProductSelect = ({handleSetProduct}) => {
         array.push({label: name, value: sku, id:order.id})
       }
     });
-    console.log(array);
+    console.log('options', array);
     setOptions(array);
   }
 
+  if(isLoading) { return <div>Loading...</div> }
+
   if(options.length < 1) {
-    return <p>Loading...</p>
+    return <p>No orders have missing vouchers</p>
   }
 
   return(

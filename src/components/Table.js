@@ -33,20 +33,6 @@ const TableHead = () => (
   </thead>
 )
 
-export const Table = ({data}) => {
-  const [orderLimit, setOrderLimit] = useState(8);
-  return(
-    <TableContainer>
-      <table className="min-w-full divide-y divide-gray-200">
-        <TableHead />
-        <tbody>
-          {data.slice(0, orderLimit).map(obj => <TableRow key={obj.id} obj={obj} />)}
-        </tbody>            
-      </table>
-      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
-    </TableContainer>
-  )
-}
 
 const TableLoadMore = ({handleLoadMore}) => (
   <div className="flex justify-center items-center py-3">
@@ -118,5 +104,49 @@ const TableRowActions = ({id, data}) => {
         {completeState ? <MinusCircle color="currentColor" /> : <CheckCircle color="currentColor" />} 
       </IconButton>      
     </div>
+  )
+}
+
+export const DashTable = ({data}) => {
+  const [orderLimit, setOrderLimit] = useState(8);
+  return(
+    <TableContainer>
+      <table className="min-w-full divide-y divide-gray-200">
+        <TableHead />
+        <tbody>
+          {data.slice(0, orderLimit).map(obj => <TableRow key={obj.id} obj={obj} />)}
+        </tbody>            
+      </table>
+      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
+    </TableContainer>
+  )
+}
+
+export const VoucherTable = ({data}) => {
+  const [orderLimit, setOrderLimit] = useState(8);
+  return(
+    <TableContainer>
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <TableHeadRow name={'Voucher name'} />           
+        </thead>
+        <tbody>
+          {data.slice(0, orderLimit).map(obj => <VoucherTableRow key={obj.id} obj={obj} />)}
+        </tbody>            
+      </table>
+      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
+    </TableContainer>
+  )
+}
+
+
+const VoucherTableRow = ({key, obj}) => {  
+  const {name} = obj;
+  return(
+    <tr>       
+      <td className="w-full px-6 py-2 whitespace-nowrap text-sm text-gray-700">{name}</td>        
+      {/* <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">{contentType}</td> */}
+      {/* <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">{timeCreated}</td> */}
+    </tr>
   )
 }
