@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, getDocs, doc, query, setDoc, onSnapshot } from "firebase/firestore"
+import { getFirestore, collection, getDocs, doc, query, setDoc, limit } from "firebase/firestore"
 import { getStorage, ref, uploadBytes, listAll } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -28,6 +28,8 @@ const DataProvider = (props) => {
   const [fileUploaded, setFileUploaded] = useState({success:false});  
   const [vouchers, setVouchers] = useState([]);
 
+  const archivedOrderLimit = 100;
+
   const loginWithFirebase = (email, password) => {
     signInWithEmailAndPassword(auth, email, password)
     .then(creds => setUser({status:'LOGGED IN', user: creds.user}))
@@ -48,15 +50,26 @@ const DataProvider = (props) => {
     const arry = [];
     const querySnapshot = await getDocs(collection(db, "orders"));
     querySnapshot.forEach((doc) => {            
-      arry.push({id: doc.id, data:doc.data()});      
-    });  
+      arry.push({id: doc.id, data:doc.data()});            
+    });      
 
     const sortedArray = arry.sort((a,b) => new Date(b.data.created) - new Date(a.data.created));
-
-    const completedOrders = sortedArray.filter(order => order.data.complete === true);
     const incompletedOrders = sortedArray.filter(order => order.data.complete !== true);
 
-    setOrders(incompletedOrders);     
+    setOrders(incompletedOrders);         
+  }
+
+  const getCompletedOrders = async() => {
+    console.log('Getting orders...')
+    const arry = [];
+    const querySnapshot = await getDocs(query(collection(db, "orders"), limit(archivedOrderLimit)));
+    querySnapshot.forEach((doc) => {            
+      arry.push({id: doc.id, data:doc.data()});            
+    });      
+
+    const sortedArray = arry.sort((a,b) => new Date(b.data.created) - new Date(a.data.created));
+    const completedOrders = sortedArray.filter(order => order.data.complete === true);    
+    
     setCompletedOrders(completedOrders)
   }
 
@@ -101,7 +114,7 @@ const DataProvider = (props) => {
   }
 
   return(
-    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh, listFiles, vouchers}} {...props} />
+    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, getCompletedOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh, listFiles, vouchers}} {...props} />
   )
 }
 

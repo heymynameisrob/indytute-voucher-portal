@@ -31,7 +31,7 @@ export const DashboardPage = () => {
   useEffect(async () => {    
     getAuthState();
     await getOrders();              
-  }, [fileUploaded]);
+  }, []);
 
   useEffect(() => {    
     if(fileUploaded.success === true) {

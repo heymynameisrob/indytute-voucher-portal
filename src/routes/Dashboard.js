@@ -12,8 +12,15 @@ import { Link } from 'react-router-dom';
 
 
 export const DashboardPage = () => {
-  const {getOrders, completedOrders, orders, logoutWithFirebase, fileUploaded, getAuthState, hydrateOrders} = useData();    
+  const {getOrders, getCompletedOrders, completedOrders, orders, logoutWithFirebase, fileUploaded, getAuthState, hydrateOrders} = useData();    
   const [showArchive, setShowArchive] = useState(false);
+
+  useEffect(async () => {    
+    getAuthState();
+    await getOrders();              
+    await getCompletedOrders();              
+  }, []);
+
 
   return(
     <PageContainer>
@@ -65,7 +72,7 @@ const DashboardTable = ({data}) => {
 
   // Check if data is fetched from Firebase
   if(data.length < 1) {
-    return <div>No orders to show</div>
+    return <div>Loading...</div>
   }
 
   return(
