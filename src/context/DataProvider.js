@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, collection, getDocs, doc, query, setDoc, limit } from "firebase/firestore"
-import { getStorage, ref, uploadBytes, listAll } from "firebase/storage";
+import { getStorage, ref, uploadBytes, listAll, deleteObject } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,11 +22,14 @@ export const DataContext = React.createContext();
 
 const DataProvider = (props) => {
   const auth = getAuth();
+
+  const [isFetching, setIsFetching] = useState(true);
   const [orders,setOrders] = useState([]);  
   const [completedOrders,setCompletedOrders] = useState([]);  
   const [user, setUser] = useState({status:'NOT LOGGED IN', user:{}});
   const [fileUploaded, setFileUploaded] = useState({success:false});  
-  const [vouchers, setVouchers] = useState([]);
+  const [vouchers, setVouchers] = useState([]);  
+  const [removedThisVoucher, setRemovedThisVoucher] = useState(false);
 
   const archivedOrderLimit = 100;
 
@@ -46,7 +49,7 @@ const DataProvider = (props) => {
   }
 
   const getOrders = async() => {
-    console.log('Getting orders...')
+    console.log('Getting new orders...')
     const arry = [];
     const querySnapshot = await getDocs(collection(db, "orders"));
     querySnapshot.forEach((doc) => {            
@@ -57,10 +60,11 @@ const DataProvider = (props) => {
     const incompletedOrders = sortedArray.filter(order => order.data.complete !== true);
 
     setOrders(incompletedOrders);         
+    setIsFetching(false)    
   }
 
   const getCompletedOrders = async() => {
-    console.log('Getting orders...')
+    console.log('Getting old orders...')
     const arry = [];
     const querySnapshot = await getDocs(query(collection(db, "orders"), limit(archivedOrderLimit)));
     querySnapshot.forEach((doc) => {            
@@ -71,6 +75,7 @@ const DataProvider = (props) => {
     const completedOrders = sortedArray.filter(order => order.data.complete === true);    
     
     setCompletedOrders(completedOrders)
+    setIsFetching(false)    
   }
 
   const setComplete = async (id, newState) => {
@@ -98,14 +103,25 @@ const DataProvider = (props) => {
 
     listAll(listRef)
     .then((res)=> {
-      res.items.forEach((itemRef) => {
-        const {name, timeCreated, contentType} = itemRef;
-        arry.push({name})        
+      res.items.forEach((itemRef) => {        
+        const {name} = itemRef;
+        arry.push({name})                
       });
     })
     .catch(err => console.log(err))  
 
-    setVouchers(arry)    
+    setVouchers(arry)          
+  }
+
+  const removeFile = async(pdf) => {
+    const storage = getStorage();
+    const fileRef = ref(storage, `/${pdf}`); 
+
+    setRemovedThisVoucher(pdf);
+
+    return deleteObject(fileRef)
+    .then(() => setRemovedThisVoucher(true))
+    .catch(err => console.log(err))
   }
 
   const voucherRefresh = async (id) => {    
@@ -114,7 +130,7 @@ const DataProvider = (props) => {
   }
 
   return(
-    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, setComplete, getOrders, getCompletedOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh, listFiles, vouchers}} {...props} />
+    <DataContext.Provider value={{ user, getAuthState, loginWithFirebase, logoutWithFirebase, isFetching, setComplete, getOrders, getCompletedOrders, orders, completedOrders, fileUploaded, uploadFile, voucherRefresh, listFiles, vouchers, removeFile, removedThisVoucher}} {...props} />
   )
 }
 

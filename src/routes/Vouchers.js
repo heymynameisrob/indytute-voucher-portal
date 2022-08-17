@@ -1,17 +1,21 @@
 import React, {Suspense, useEffect, useState} from 'react';
 import ReactModal from 'react-modal';
 import { Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import { useData } from '../context/DataProvider';
 
-import { ButtonSecondary, IconButton } from '../components/Controls';
+import { Button, ButtonSecondary } from '../components/Controls';
+import { PageContainer, PageHeader } from '../components/Layout';
 import { VoucherTable } from '../components/Table';
 import { Upload } from '../components/Upload';
 
 
 export const VouchersPage = () => {
-  const {getOrders, vouchers, listFiles, logoutWithFirebase, fileUploaded, getAuthState, hydrateOrders} = useData();    
-  const [showArchive, setShowArchive] = useState(false);
+  const {getOrders, vouchers, listFiles, fileUploaded} = useData();      
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [voucherLimit, setVoucherLimit] = useState(8);
 
   const modalStyles = {
     content: {
@@ -27,8 +31,7 @@ export const VouchersPage = () => {
     }
   }
 
-  useEffect(async () => {    
-    getAuthState();
+  useEffect(async () => {        
     await getOrders();              
   }, [fileUploaded]);
 
@@ -42,23 +45,18 @@ export const VouchersPage = () => {
     await listFiles();
   },[])
 
-  const openModal = () => {
-    setModalIsOpen(true);
-  }
-  const closeModal = () => {
-    setModalIsOpen(false);
-  }
-
-  console.log(vouchers);
+  const openModal = () => {setModalIsOpen(true) }
+  const closeModal = () => { setModalIsOpen(false);}  
 
   return(
     <PageContainer>
-      <DashboardNav handleOpenModal={openModal} />
+      <VoucherNav handleOpenModal={openModal} />
       <PageHeader label="Vouchers" />            
-      
-      <Table key={vouchers.length} data={vouchers} />
-     
-      <ButtonSecondary onClick={() => logoutWithFirebase()}>Logout</ButtonSecondary>
+
+      <VoucherList data={vouchers} limit={voucherLimit}/>
+
+      {vouchers.length > voucherLimit && <ButtonSecondary onClick={() => setVoucherLimit(voucherLimit + 20)}>Load more</ButtonSecondary>}
+           
       <ReactModal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
@@ -66,20 +64,15 @@ export const VouchersPage = () => {
         >
         <Upload />
       </ReactModal>
+      <ToastContainer />
     </PageContainer>
   )
 }
 
-const PageContainer = ({children}) => (
-  <div className="max-w-6xl px-4 mx-auto">
-    {children}
-  </div>
-)
-
-const DashboardNav = ({handleOpenModal}) => {  
+const VoucherNav = ({handleOpenModal}) => {  
   return(
     <div className="flex justify-between items-center py-6">
-      <Link to="/">Back to dashboard</Link>
+      <Link className="font-bold text-purple-700 underline" to="/">Back to dashboard</Link>
       <div className="space-x-4">
         <ButtonSecondary onClick={() => handleOpenModal()}>Upload Voucher</ButtonSecondary>        
       </div>
@@ -87,22 +80,37 @@ const DashboardNav = ({handleOpenModal}) => {
   )
 }
 
-const PageHeader = ({label}) => (
-  <h2 class="text-2xl md:text-4xl font-semibold mb-6">
-    {label}    
-  </h2>
-)
-
-const Table = ({data}) => {
+const VoucherList = ({data, limit}) => {
 
   // Make this better
   if(data.length < 1) {       
     return (
       <div>Loading...</div>
     )
-  }
+  }  
 
-  return(    
-    <VoucherTable cols={['Name, Email']} data={data} />
+  return (
+    <ul class="block space-y-4 mb-6">
+      {data.slice(0,limit).map(item => <li><VoucherListItem name={item.name} /></li>)}
+    </ul>
+  )
+}
+
+const VoucherListItem = ({name}) => {
+
+  const {removeFile, removedThisVoucher, listFiles} = useData(); 
+  
+  const handleRemove = async(pdf) => {    
+        
+    removeFile(pdf);
+    toast.success(`Deleted ${pdf} from database`)
+
+   }
+
+  return(
+    <div className="flex justify-between items-center bg-white p-4 border-gray-200">
+      <p>{name}</p>
+      <a className="font-bold text-red-700 underline" href="#" onClick={() => handleRemove(name)}>Delete voucher permanently</a>
+    </div>
   )
 }

@@ -1,18 +1,16 @@
 import React, {Suspense, useEffect, useState} from 'react';
 import { ChevronDown, ChevronUp } from 'react-feather';
-import ReactModal from 'react-modal';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useData } from '../context/DataProvider';
 
+import { useData } from '../context/DataProvider';
+import { PageContainer, PageHeader, DashboardNav } from '../components/Layout';
 import { ButtonSecondary, IconButton } from '../components/Controls';
 import { DashTable } from '../components/Table';
-import { Upload } from '../components/Upload';
-import { Link } from 'react-router-dom';
 
 
 export const DashboardPage = () => {
-  const {getOrders, getCompletedOrders, completedOrders, orders, logoutWithFirebase, fileUploaded, getAuthState, hydrateOrders} = useData();    
+  const {getOrders, getCompletedOrders, completedOrders, orders, logoutWithFirebase, isFetching, getAuthState} = useData();    
   const [showArchive, setShowArchive] = useState(false);
 
   useEffect(async () => {    
@@ -26,53 +24,27 @@ export const DashboardPage = () => {
     <PageContainer>
       <DashboardNav />
       <PageHeader label="Latest Orders" orders={orders} />      
-      {orders && <DashboardTable key={orders.length} data={orders} />}
+
+      {isFetching ? <div>Loading...</div> : <DashboardTable key={orders.length} data={orders} />}
 
       <div class="flex justify-between items-center mb-6 mt-12">
         <PageHeader label="Archived Orders" orders={completedOrders} />      
         <IconButton onClick={() => setShowArchive(!showArchive)}>{ showArchive ? <ChevronUp color="currentColor" /> : <ChevronDown color="currentColor" /> }</IconButton>
       </div>
 
-      {
-      showArchive ? 
-      <DashboardTable data={completedOrders} /> : null
-      }      
+      {showArchive ? <DashboardTable data={completedOrders} /> : null}      
+      
       <ToastContainer />
       <ButtonSecondary onClick={() => logoutWithFirebase()}>Logout</ButtonSecondary>
-      
     </PageContainer>
   )
 }
-
-const PageContainer = ({children}) => (
-  <div className="max-w-6xl px-4 mx-auto">
-    {children}
-  </div>
-)
-
-const DashboardNav = () => {  
-  return(
-    <div className="flex justify-between items-center py-6">
-      <h2 className="text-lg font-semibold">Indytute</h2>
-      <div className="space-x-4">
-        <Link to="/vouchers">Vouchers</Link>
-      </div>
-    </div>
-  )
-}
-
-const PageHeader = ({label, orders}) => (
-  <h2 class="text-2xl md:text-4xl font-semibold mb-6">
-    {label}
-    <span className="text-xs text-opacity-50 font-normal pl-2">({orders.length} orders)</span>
-  </h2>
-)
 
 const DashboardTable = ({data}) => {
 
   // Check if data is fetched from Firebase
   if(data.length < 1) {
-    return <div>Loading...</div>
+    return <div>No new orders</div>
   }
 
   return(
