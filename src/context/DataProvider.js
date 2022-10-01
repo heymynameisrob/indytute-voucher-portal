@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, getDocs, doc, query, setDoc, limit } from "firebase/firestore"
+import { getFirestore, collection, getDocs, doc, query, setDoc, limit, orderBy } from "firebase/firestore"
 import { getStorage, ref, uploadBytes, listAll, deleteObject } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -66,22 +66,38 @@ const DataProvider = (props) => {
   const getCompletedOrders = async() => {
     console.log('Getting old orders...')
     const arry = [];
-    const querySnapshot = await getDocs(query(collection(db, "orders"), limit(archivedOrderLimit)));
+    const querySnapshot = await getDocs(query(collection(db, "orders"), orderBy('created', 'desc'), limit(archivedOrderLimit)));
     querySnapshot.forEach((doc) => {            
       arry.push({id: doc.id, data:doc.data()});            
     });      
 
-    const sortedArray = arry.sort((a,b) => new Date(b.data.created) - new Date(a.data.created));
-    const completedOrders = sortedArray.filter(order => order.data.complete === true);    
+    const completedOrders = arry.filter(order => order.data.complete === true);    
     
     setCompletedOrders(completedOrders)
     setIsFetching(false)    
   }
 
   const setComplete = async (id, newState) => {
+
+    const completingLatestOrder = newState;
+
+    // Updates Firebase
     const cityRef = doc(db, 'orders', id);
-    setDoc(cityRef, { complete: newState }, { merge: true });
-    await getOrders();        
+
+    try {
+      setDoc(cityRef, { complete: newState }, { merge: true });
+    } catch {
+      alert('Woops. Something went wrong. Try again and if it persists, contact Rob')
+    }
+    
+    // Update Local State
+    const newOrdersState = orders.filter(function( obj ) {
+      return obj.id !== id;
+    });
+
+    // Checks if order is going from latest to completed
+    completingLatestOrder ? setOrders(newOrdersState) : setCompletedOrders(newOrdersState);
+    
   }
 
   const uploadFile = async(sku, file) => {

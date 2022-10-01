@@ -42,8 +42,10 @@ export const modifyPDF = async (data) => {
   firstPage.drawText('Voucher PIN', {x: 270, y: height / 2 + 300, ...labelText});
 
   firstPage.drawText(orderID.toString(), {x:35, ...valueText});
-  firstPage.drawText(expiryDate.toString(), {x: 130, ...valueText});
+  // firstPage.drawText(expiryDate.toString(), {x: 130, ...valueText}); // Normal Expiry
+  firstPage.drawText('June 25th 2023', {x: 130, ...valueText});
   firstPage.drawText(pin.toString(), {x: 270, ...valueText});
+  
 
   try {    
     const pdfBytes = await pdfDoc.save()

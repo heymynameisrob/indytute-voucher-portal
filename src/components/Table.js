@@ -49,7 +49,11 @@ const TableHeadRow = ({name}) => {
 }
 
 const TableRow = ({key, obj}) => {  
+  // const {customer, name, orderID, type, orderStatus, created} = obj.data;
+  const [voucherData, setVoucherData] = useState(obj.data);
   const {customer, name, orderID, type, orderStatus, created} = obj.data;
+
+  
   return(
     <tr>
       <td className="px-6 py-2 whitespace-nowrap text-sm text-gray-700">
