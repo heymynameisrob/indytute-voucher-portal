@@ -31,7 +31,7 @@ const DataProvider = (props) => {
   const [vouchers, setVouchers] = useState([]);  
   const [removedThisVoucher, setRemovedThisVoucher] = useState(false);
 
-  const archivedOrderLimit = 100;
+  const archivedOrderLimit = 300;
 
   const loginWithFirebase = (email, password) => {
     signInWithEmailAndPassword(auth, email, password)

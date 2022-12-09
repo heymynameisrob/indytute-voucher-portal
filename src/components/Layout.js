@@ -24,3 +24,14 @@ export const DashboardNav = () => {
     </div>
   )
 }
+
+export const DashboardContainer = ({children}) => { 
+  return(
+    <div className="bg-gray-100 min-h-screen">
+      <DashboardNav />
+      <div className="max-w-6xl px-4 mx-auto">
+        {children}
+      </div>
+    </div>
+  )
+}

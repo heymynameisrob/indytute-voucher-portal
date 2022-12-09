@@ -112,7 +112,12 @@ const TableRowActions = ({id, data}) => {
 }
 
 export const DashTable = ({data}) => {
-  const [orderLimit, setOrderLimit] = useState(8);
+  const [orderLimit, setOrderLimit] = useState( sessionStorage.getItem('orderLimit') || 8);
+
+  const handleSetOrderLimit = () => {
+    setOrderLimit(orderLimit + 8);
+    sessionStorage.setItem('orderLimit', orderLimit + 8);
+  }
   return(
     <TableContainer>
       <table className="min-w-full divide-y divide-gray-200">
@@ -121,7 +126,7 @@ export const DashTable = ({data}) => {
           {data.slice(0, orderLimit).map(obj => <TableRow key={obj.id} obj={obj} />)}
         </tbody>            
       </table>
-      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => setOrderLimit(orderLimit + 8)} /> : null}        
+      {data.length > orderLimit ? <TableLoadMore handleLoadMore={() => handleSetOrderLimit()} /> : null}        
     </TableContainer>
   )
 }
