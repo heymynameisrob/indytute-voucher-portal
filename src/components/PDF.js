@@ -1,4 +1,4 @@
-import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { toast } from 'react-toastify';
 import download from 'downloadjs';
 
@@ -26,6 +26,19 @@ export const modifyPDF = async (data) => {
   // Get the width and height of the first page
   const { height } = firstPage.getSize();
 
+  const date = () => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const startDate = new Date(year, 9, 25); // October 25th
+    const endDate = new Date(year, 11, 25); // December 25th
+    
+    if (currentDate >= startDate && currentDate <= endDate) {
+      return `June 25th ${year + 1}`;
+    } else {
+      return expiryDate.toString();
+    }
+  };
+
   const labelText = {  
     y: height - 800,  
     size:8,
@@ -42,8 +55,9 @@ export const modifyPDF = async (data) => {
   firstPage.drawText('Voucher PIN', {x: 270, y: height / 2 + 300, ...labelText});
 
   firstPage.drawText(orderID.toString(), {x:35, ...valueText});
+  firstPage.drawText(date, {x: 130, ...valueText}); // Normal Expiry
   // firstPage.drawText(expiryDate.toString(), {x: 130, ...valueText}); // Normal Expiry
-  firstPage.drawText('June 25th 2023', {x: 130, ...valueText});
+  // firstPage.drawText('June 25th 2023', {x: 130, ...valueText});
   firstPage.drawText(pin.toString(), {x: 270, ...valueText});
   
 
