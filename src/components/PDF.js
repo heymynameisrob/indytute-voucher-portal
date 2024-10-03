@@ -29,7 +29,7 @@ export const modifyPDF = async (data) => {
   const date = () => {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
-    const startDate = new Date(year, 9, 25); // October 25th
+    const startDate = new Date(year, 9, 1); // October 1st
     const endDate = new Date(year, 11, 25); // December 25th
     
     if (currentDate >= startDate && currentDate <= endDate) {
@@ -37,6 +37,7 @@ export const modifyPDF = async (data) => {
     } else {
       return expiryDate.toString();
     }
+    return "test"
   };
 
   const labelText = {  
@@ -55,7 +56,7 @@ export const modifyPDF = async (data) => {
   firstPage.drawText('Voucher PIN', {x: 270, y: height / 2 + 300, ...labelText});
 
   firstPage.drawText(orderID.toString(), {x:35, ...valueText});
-  firstPage.drawText(date, {x: 130, ...valueText}); // Normal Expiry
+  firstPage.drawText(date(), {x: 130, ...valueText}); // Normal Expiry
   // firstPage.drawText(expiryDate.toString(), {x: 130, ...valueText}); // Normal Expiry
   // firstPage.drawText('June 25th 2023', {x: 130, ...valueText});
   firstPage.drawText(pin.toString(), {x: 270, ...valueText});
